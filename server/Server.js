@@ -1,9 +1,8 @@
 const Curry = require('lodash/fp/curry');
 const IsEmpty = require('lodash/fp/isEmpty');
-const Compose = require('lodash/fp/compose');
 const Equal = require('fast-deep-equal');
 const Joi = require('joi');
-
+const Minimatch = require('minimatch');
 
 /**
  * A request object
@@ -48,7 +47,7 @@ const validResponseSchema = Joi.object({
  * @property {Request} request - Request of the interaction
  * @property {Response} response - Response of the interaction
  */
-const validInteraction= Joi.object({
+const validInteraction = Joi.object({
   request: validRequestSchema,
   response: validResponseSchema,
 });
@@ -69,7 +68,7 @@ const requestEqual = Curry((request, other) => {
 const bothAreEmpty = (object, other) => IsEmpty(object) && IsEmpty(other);
 const deepEqual = (object, other) => {
   if (object === other) {
-    return true
+    return true;
   }
 
   if (bothAreEmpty(object, other)) {
@@ -85,7 +84,7 @@ const deepEqual = (object, other) => {
  * @return {boolean}
  */
 const requestDataEqual = Curry((request, other) => {
-  const queryEqual = deepEqual(request.query, other.query) ;
+  const queryEqual = deepEqual(request.query, other.query);
   const bodyEqual = deepEqual(request.body, other.body);
 
   return queryEqual && bodyEqual;
@@ -99,6 +98,19 @@ const requestDataEqual = Curry((request, other) => {
  */
 const createUniqueRequestId = (path, method) => `${method}->${path}`;
 
+const findInteraction = (path, method, interactions = []) =>
+  Array.from(interactions.values()).find(interaction => {
+    if (method !== interaction.request.method) {
+      return false;
+    }
+
+    if (path === interaction.request.path) {
+      return true;
+    }
+
+    return Minimatch(path, interaction.request.path);
+  });
+
 /**
  * Server continue symbol
  * @typedef {Symbol} Server.continue
@@ -107,26 +119,29 @@ const createUniqueRequestId = (path, method) => `${method}->${path}`;
  */
 
 export default class Server {
-  constructor({ baseUrl, interceptUrls = [] }) {
+  constructor({ baseUrl, interceptUrls = [], baseInteractions = [] } = {}) {
     if (!baseUrl) {
       throw new Error('Need a base url to create a server');
     }
     this.baseUrl = baseUrl;
     this.interceptUrls = interceptUrls;
+    this.baseInteractions = baseInteractions;
     this.interactions = new Map();
     this.requestReceived = [];
+
+    this.with(...baseInteractions);
 
     /**
      * Continue request
      * @typedef {symbol} Server.Continue
      */
-    this.continue = Symbol();
+    this.continue = Symbol('Server.Continue');
 
     /**
      * Abort request
      * @typedef {symbol} Server.Abort
      */
-    this.abort = Symbol();
+    this.abort = Symbol('Server.Abort');
   }
 
   /**
@@ -153,9 +168,7 @@ export default class Server {
     }
 
     const { path, method } = validRequest;
-
-    const requestId = createUniqueRequestId(path, method);
-    const interaction = this.interactions.get(requestId);
+    const interaction = findInteraction(path, method, this.interactions);
 
     // If I don't have an interaction, should continue request
     if (!interaction) {
@@ -182,7 +195,9 @@ export default class Server {
         return value;
       })
       .forEach(interaction => {
-        const { request: { path, method } } = interaction;
+        const {
+          request: { path, method },
+        } = interaction;
         const requestId = createUniqueRequestId(path, method);
         this.interactions.set(requestId, interaction);
       });
@@ -215,5 +230,6 @@ export default class Server {
   resetRequests() {
     this.clearRequests();
     this.interactions.clear();
+    this.with(...this.baseInteractions);
   }
 }

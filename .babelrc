@@ -1,4 +1,0 @@
-{
-  "presets": [["env", { "modules": "commonjs" }]],
-  "plugins": ["dynamic-import-node"]
-}

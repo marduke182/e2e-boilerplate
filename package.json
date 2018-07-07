@@ -4,27 +4,19 @@
   "description": "E2E Architecture",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./nodebaird test"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "babel-core": "^6.26.3",
-    "babel-jest": "^23.0.1",
-    "fast-deep-equal": "^1.1.0",
-    "jest": "^23.1.0",
-    "jest-environment-node": "latest",
-    "joi": "^13.4.0",
-    "lodash": "^4.17.10",
-    "minimatch": "^3.0.4",
-    "mkdirp": "latest",
-    "puppeteer": "latest",
-    "rimraf": "latest"
+    "baird": "^1.0.0",
+    "baird-server": "^1.0.0",
+    "baird-page-objects": "^1.0.0",
+    "jest": "^23.3.0"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.5",
-    "babel-plugin-dynamic-import-node": "^1.2.0",
-    "babel-preset-env": "^1.7.0",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^13.0.0",
     "eslint-config-prettier": "^2.9.0",
@@ -32,21 +24,5 @@
     "husky": "^0.14.3",
     "lint-staged": "^7.2.0",
     "prettier": "^1.13.5"
-  },
-  "jest": {
-    "verbose": true,
-    "moduleDirectories": [
-      "node_modules"
-    ],
-    "globalSetup": "<rootDir>/config/globalSetup.js",
-    "globalTeardown": "<rootDir>/config/teardown.js",
-    "testEnvironment": "<rootDir>config/NodeEnvironment",
-    "testMatch": [
-      "**/acceptance/**/*.js"
-    ],
-    "transform": {
-      "^.+\\.js?$": "babel-jest"
-    },
-    "setupTestFrameworkScriptFile": "<rootDir>config/frameworks.js"
   }
 }

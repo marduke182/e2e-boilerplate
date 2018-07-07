@@ -1,11 +1,11 @@
-import user from '../server/user';
-import RegisterPage from '../po/RegisterPage';
+import user from 'contracts/user';
+import createRegisterPage from 'po/createRegisterPage';
 
 // Initialize page object and go to expected url
 let registerPage;
 beforeEach(async () => {
-  registerPage = new RegisterPage(global.page, global.host);
-  await registerPage.go()
+  registerPage = createRegisterPage(global.page, global.host);
+  await registerPage.go();
 });
 
 // Verify if the inputs in register page exist
